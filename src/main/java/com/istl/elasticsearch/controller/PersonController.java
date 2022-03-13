@@ -5,9 +5,12 @@ import com.istl.elasticsearch.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/person")
-public class PersonController {
+public class PersonController
+{
     private final PersonService service;
 
     @Autowired
@@ -20,10 +23,23 @@ public class PersonController {
         service.save(person);
     }
 
+    @GetMapping
+    public List<Person> save(){
+        return service.getAll();
+    }
+
     @GetMapping("/{id}")
-    public Person save(@RequestParam("id") final String id){
+    public Person save(@PathVariable final String id){
         return service.findById(id);
     }
 
+    @PutMapping("/{id}")
+    public boolean updatePerson(@PathVariable("id") final String id,@RequestBody final Person person){
+        return service.update(id,person);
+    }
+    @DeleteMapping("/{id}")
+    public boolean deletePerson(@PathVariable("id") final String id){
+        return service.delete(id);
+    }
 
 }
