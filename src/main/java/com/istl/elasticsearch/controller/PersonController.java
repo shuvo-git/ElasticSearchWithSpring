@@ -2,7 +2,9 @@ package com.istl.elasticsearch.controller;
 
 import com.istl.elasticsearch.model.Person;
 import com.istl.elasticsearch.service.PersonService;
+import com.istl.elasticsearch.service.PersonServiceRepoImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,10 +13,11 @@ import java.util.List;
 @RequestMapping("/api/person")
 public class PersonController
 {
+
     private final PersonService service;
 
     @Autowired
-    public PersonController(PersonService service) {
+    public PersonController(PersonServiceRepoImpl service) {
         this.service = service;
     }
 
@@ -24,12 +27,12 @@ public class PersonController
     }
 
     @GetMapping
-    public List<Person> save(){
+    public List<Person> getAll(){
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Person save(@PathVariable final String id){
+    public Person getById(@PathVariable final String id){
         return service.findById(id);
     }
 

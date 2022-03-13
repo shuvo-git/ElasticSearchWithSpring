@@ -22,4 +22,13 @@ public class Person
 
     @Field(type = FieldType.Text)
     private String name;
+
+    @Field(type = FieldType.Text)
+    private String title;
+
+    @Field(type = FieldType.Short)
+    private short age;
+
+    @Field(type = FieldType.Text)
+    private String occupation;
 }

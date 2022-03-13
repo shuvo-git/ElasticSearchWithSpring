@@ -14,25 +14,33 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @Configuration
-@EnableElasticsearchRepositories(basePackages = "com.istl.elasticsearch.repository")
-@ComponentScan(basePackages = "com.istl.elasticsearch.repository")
+//@EnableElasticsearchRepositories(basePackages = "com.istl.elasticsearch.repository")
+//@ComponentScan(basePackages = "com.istl.elasticsearch.repository")
 public class ElasticSearchConfig extends AbstractElasticsearchConfiguration {
 
-    @Value("${elasticsearch.url}")
-    public String elasticSearch;
+    @Value("${spring.elasticsearch.uris}")
+    public String host;
+
+    @Value("${spring.elasticsearch.username}")
+    public String elasticUsername;
+
+    @Value("${spring.elasticsearch.password}")
+    public String elasticPassword;
 
     @Bean
     @Override
     public RestHighLevelClient elasticsearchClient() {
         final ClientConfiguration configuration
                 = ClientConfiguration.builder()
-                .connectedTo(elasticSearch)
+                .connectedTo(host)
+                .withBasicAuth(elasticUsername, elasticPassword)
                 .build();
         return RestClients.create(configuration).rest();
     }
 
-//    @Bean
-//    public ElasticsearchOperations elasticsearchTemplate() {
-//        return new ElasticsearchRestTemplate(elasticsearchClient());
-//    }
+    @Bean
+    public ElasticsearchRestTemplate elasticsearchTemplate() {
+        return new ElasticsearchRestTemplate(elasticsearchClient());
+    }
+
 }
