@@ -1,13 +1,17 @@
 package com.istl.elasticsearch.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.istl.elasticsearch.helper.Indices;
 import com.istl.elasticsearch.model.Person;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -21,9 +25,9 @@ import java.util.List;
 
 @Primary
 @Service
-public class PersonServiceRestImpl implements PersonService{
+public class PersonServiceRestImpl implements PersonService {
 
-    private  final RestHighLevelClient restHighLevelClient;
+    private final RestHighLevelClient restHighLevelClient;
 
     @Autowired
     public PersonServiceRestImpl(RestHighLevelClient restHighLevelClient) {
@@ -33,29 +37,20 @@ public class PersonServiceRestImpl implements PersonService{
 
     @Override
     public void save(Person person) {
-//        IndexQuery indexQuery = new IndexQueryBuilder()
-//                .withId(person.getId().toString())
-//                .withObject(person).build();
-
-
         XContentBuilder builder;
         try {
             System.out.println("Starting...................");
-            builder = XContentFactory.jsonBuilder()
-                    .startObject()
-                    .field("id",person.getId())
-                    .field("name",person.getName())
-                    .field("title",person.getTitle())
-                    .field("age",person.getAge())
-                    .field("occupation",person.getOccupation())
-                    .endObject();
+
+            // Generating JSON from Person Object
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            String json = ow.writeValueAsString(person);
+
             IndexRequest indexRequest = new IndexRequest(Indices.PERSON_INDEX);
-            indexRequest.source(builder);
+            indexRequest.source(json, XContentType.JSON);
+
             IndexResponse response = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
 
-            //.index(indexQuery, IndexCoordinates.of(Indices.PERSON_INDEX));
-            //return documentId;
-            System.out.println("Ending...................");
+            System.out.println("Ending......................");
         } catch (IOException e) {
             System.out.println("Exception...................");
             e.printStackTrace();
