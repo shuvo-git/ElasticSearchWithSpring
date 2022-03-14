@@ -3,6 +3,7 @@ package com.istl.elasticsearch.controller;
 import com.istl.elasticsearch.model.Person;
 import com.istl.elasticsearch.service.PersonService;
 import com.istl.elasticsearch.service.PersonServiceRepoImpl;
+import com.istl.elasticsearch.service.PersonServiceRestImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class PersonController
     private final PersonService service;
 
     @Autowired
-    public PersonController(PersonServiceRepoImpl service) {
+    public PersonController(PersonServiceRestImpl service) {
         this.service = service;
     }
 
