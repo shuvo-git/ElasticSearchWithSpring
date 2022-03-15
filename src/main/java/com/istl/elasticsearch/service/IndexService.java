@@ -3,6 +3,7 @@ package com.istl.elasticsearch.service;
 import com.istl.elasticsearch.helper.Indices;
 import com.istl.elasticsearch.helper.Util;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -29,7 +30,11 @@ public class IndexService {
     }
 
     @PostConstruct
-    public void tryToCreateIndices() {
+    public void createIndices() {
+        reCreateIndices(true);
+    }
+
+    public void reCreateIndices(final boolean deleteExisting) {
         final String settings = Util.loadAsString("static/es-settings.json");
         for (final String indexName : INDICES_TO_CREATE) {
             try {
@@ -41,12 +46,17 @@ public class IndexService {
                                 new GetIndexRequest(indexName),
                                 RequestOptions.DEFAULT
                         );
-                if (indexIfExists) continue;
+                if (indexIfExists) {
+                    if (deleteExisting == false)
+                        continue;
+
+                    client.indices().delete(new DeleteIndexRequest(indexName),RequestOptions.DEFAULT);
+                }
 
                 // loading mapping for the index
-                final String mapping = Util.loadAsString("static/mapping/" + indexName + ".json");
-                if (settings == null || mapping == null){
-                    log.error("Failed to create index with name {}",indexName);
+                final String mapping = Util.loadAsString("static/mappings/" + indexName + ".json");
+                if (settings == null || mapping == null) {
+                    log.error("Failed to create index with name {}", indexName);
                     continue;
                 }
 
@@ -55,7 +65,7 @@ public class IndexService {
                 createIndexRequest.settings(settings, XContentType.JSON);
                 createIndexRequest.mapping(mapping, XContentType.JSON);
 
-                client.indices().create(createIndexRequest,RequestOptions.DEFAULT);
+                client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
 
             } catch (final Exception e) {
                 e.printStackTrace();

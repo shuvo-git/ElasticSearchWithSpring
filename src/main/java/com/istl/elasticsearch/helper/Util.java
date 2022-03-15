@@ -16,7 +16,7 @@ public class Util {
             return new String(Files.readAllBytes(resource.toPath()));
 
         } catch (IOException e) {
-            log.debug(e.getMessage(),e);
+            log.error(e.getMessage(),e);
             return null;
         }
     }

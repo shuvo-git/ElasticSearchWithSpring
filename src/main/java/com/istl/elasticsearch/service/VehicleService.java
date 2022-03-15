@@ -2,6 +2,7 @@ package com.istl.elasticsearch.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.istl.elasticsearch.exception.error.ErrorResponse;
 import com.istl.elasticsearch.helper.Indices;
 import com.istl.elasticsearch.model.Vehicle;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,9 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
+
 @Service
 @Slf4j
 public class VehicleService {
@@ -26,7 +30,7 @@ public class VehicleService {
         this.client = client;
     }
 
-    public boolean index(final Vehicle vehicle){
+    public boolean index(final Vehicle vehicle) {
         try {
             final String vehicleAsString = MAPPER.writeValueAsString(vehicle);
 
@@ -40,25 +44,22 @@ public class VehicleService {
 
 
         } catch (final Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return false;
         }
     }
 
-    public Vehicle getById(final String id){
-        try {
-            GetRequest getRequest = new GetRequest(Indices.VEHICLE_INDEX, id);
+    public Vehicle getById(final String id) throws IOException, IllegalArgumentException {
+        GetRequest getRequest = new GetRequest(Indices.VEHICLE_INDEX, id);
+        final GetResponse response = client.get(getRequest, RequestOptions.DEFAULT);
 
-            final GetResponse response = client.get(getRequest, RequestOptions.DEFAULT);
-            if(response == null)
-                return null;
+        if(response == null || response.isSourceEmpty())
+            return null;z
 
-            return MAPPER.readValue(response.getSourceAsString(),Vehicle.class);
-
-
-        } catch (final Exception e) {
-            log.error(e.getMessage(),e);
-            return null;
-        }
+        return MAPPER.readValue(response.getSourceAsString(), Vehicle.class);
     }
+
+
+
+
 }
