@@ -31,7 +31,7 @@ public class IndexService {
 
     @PostConstruct
     public void createIndices() {
-        reCreateIndices(true);
+        reCreateIndices(false);
     }
 
     public void reCreateIndices(final boolean deleteExisting) {
@@ -47,9 +47,12 @@ public class IndexService {
                                 RequestOptions.DEFAULT
                         );
                 if (indexIfExists) {
+
+                    // if flag for deleteExisting is set to false, ignore deleting INDEX
                     if (deleteExisting == false)
                         continue;
 
+                    // if flag for deleteExisting is set to true, delete that INDEX
                     client.indices().delete(new DeleteIndexRequest(indexName),RequestOptions.DEFAULT);
                 }
 
