@@ -34,4 +34,9 @@ public class VehicleController {
         System.out.println(dto);
         return vehicleService.search(dto);
     }
+
+    @GetMapping
+    public List<Vehicle> getAll(){
+        return vehicleService.getAll();
+    }
 }

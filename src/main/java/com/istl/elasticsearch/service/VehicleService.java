@@ -17,14 +17,18 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.core.TimeValue;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -97,13 +101,56 @@ public class VehicleService {
 
     }
 
-    public List<Vehicle> searchTest(){
-        QueryBuilders.matchQuery("number","Vehicle6");
+    public List<Vehicle> getAll(){
         SearchRequest searchRequest = new SearchRequest(Indices.VEHICLE_INDEX);
-        searchRequest.searchType()
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        searchRequest.source(searchSourceBuilder);
+
+        try {
+            final SearchResponse searchResponse = client.search(searchRequest,RequestOptions.DEFAULT);
+
+            final SearchHit[] hits = searchResponse.getHits().getHits();
+            List<Vehicle> vehicles = new ArrayList<>(hits.length);
+
+            for (SearchHit hit: hits) {
+                vehicles.add(MAPPER.readValue(hit.getSourceAsString(),Vehicle.class));
+            }
+
+            return vehicles;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
 
 
 
 }
+
+/*
+QueryBuilder queryBuilder = QueryBuilders.matchQuery("number","Vehicle6")
+                .operator(Operator.AND);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+                .postFilter(queryBuilder);
+
+        SearchRequest searchRequest = new SearchRequest(Indices.VEHICLE_INDEX);
+        searchRequest.source(searchSourceBuilder);
+
+        try {
+            System.out.println(searchRequest);
+            final SearchResponse searchResponse = client.search(searchRequest,RequestOptions.DEFAULT);
+
+            System.out.println(searchResponse);
+
+            return null;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+ */
