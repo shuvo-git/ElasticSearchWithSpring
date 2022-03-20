@@ -4,9 +4,11 @@ import com.istl.elasticsearch.model.Vehicle;
 import com.istl.elasticsearch.search.SearchRequestDTO;
 import com.istl.elasticsearch.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -38,5 +40,14 @@ public class VehicleController {
     @GetMapping
     public List<Vehicle> getAll(){
         return vehicleService.getAll();
+    }
+
+    @GetMapping("/searchVehicle/{date}")
+    public List<Vehicle> getAll(
+            @PathVariable
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            final Date date)
+    {
+        return vehicleService.getAllVehicleCreatedSince(date);
     }
 }

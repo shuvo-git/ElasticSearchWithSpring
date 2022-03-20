@@ -24,6 +24,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -73,17 +74,35 @@ public class VehicleService {
 
     public List<Vehicle> search(final SearchRequestDTO dto) {
 
-        SearchRequest request = SearchUtil.buildSearchRequest(Indices.VEHICLE_INDEX,dto);
+        SearchRequest request = SearchUtil.buildSearchRequest(
+            Indices.VEHICLE_INDEX,
+            dto
+        );
 
+        return searchInternal(request);
+
+    }
+
+    public List<Vehicle> getAllVehicleCreatedSince(final Date date) {
+
+        SearchRequest request = SearchUtil.buildSearchRequest(
+                Indices.VEHICLE_INDEX,
+                "createdAt",
+                date
+        );
+
+        return searchInternal(request);
+
+    }
+
+    private List<Vehicle> searchInternal(SearchRequest request){
         if(request == null){
             log.debug("Failed to create SearchRequest");
             return Collections.emptyList();
         }
 
         try {
-            System.out.println(request);
             final SearchResponse response = client.search(request,RequestOptions.DEFAULT);
-            System.out.println(response);
 
             final SearchHit[] hits = response.getHits().getHits();
             final List<Vehicle> vehicles = new ArrayList<>(hits.length);
@@ -98,7 +117,6 @@ public class VehicleService {
             log.error(e.getMessage(),e);
             return Collections.emptyList();
         }
-
     }
 
     public List<Vehicle> getAll(){
@@ -106,6 +124,7 @@ public class VehicleService {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
         searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        searchSourceBuilder.sort("id", SortOrder.ASC);
         searchRequest.source(searchSourceBuilder);
 
         try {
@@ -132,25 +151,3 @@ public class VehicleService {
 
 }
 
-/*
-QueryBuilder queryBuilder = QueryBuilders.matchQuery("number","Vehicle6")
-                .operator(Operator.AND);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
-                .postFilter(queryBuilder);
-
-        SearchRequest searchRequest = new SearchRequest(Indices.VEHICLE_INDEX);
-        searchRequest.source(searchSourceBuilder);
-
-        try {
-            System.out.println(searchRequest);
-            final SearchResponse searchResponse = client.search(searchRequest,RequestOptions.DEFAULT);
-
-            System.out.println(searchResponse);
-
-            return null;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
- */

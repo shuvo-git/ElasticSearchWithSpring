@@ -14,11 +14,15 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.elasticsearch.transport.TransportRequestOptions.timeout;
+
 @Slf4j
-public final class SearchUtil {
+public final class SearchUtil{
+
     private SearchUtil() {
     }
 
@@ -74,4 +78,31 @@ public final class SearchUtil {
                                 .fuzziness(Fuzziness.AUTO)
                 ).orElse(null);
     }
+
+    public static SearchRequest buildSearchRequest(final String indexName,
+                                                   final String field,
+                                                   final Date date){
+        try {
+            final SearchSourceBuilder builder = new SearchSourceBuilder()
+                    .postFilter(getQueryBuilder(field, date))
+                    .timeout(new TimeValue(60, TimeUnit.SECONDS));
+
+            final SearchRequest request = new SearchRequest(indexName);
+            request.source(builder);
+
+            return request;
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+
+    private static QueryBuilder getQueryBuilder(final String field, final Date date) {
+        return QueryBuilders.rangeQuery(field).gte(date);
+    }
+
+
 }
