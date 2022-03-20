@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.core.TimeValue;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.util.CollectionUtils;
@@ -96,6 +93,37 @@ public final class SearchUtil{
             return null;
         }
 
+    }
+
+    public static SearchRequest buildSearchRequest(final String indexName,
+                                                   final SearchRequestDTO dto,
+                                                   final Date date) {
+        try {
+            final QueryBuilder searchQuery = getQueryBuilder(dto);
+            final QueryBuilder dateQuery = getQueryBuilder("createdAt", date);
+
+            final BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+                    .must(searchQuery)
+                    .must(dateQuery);
+
+            SearchSourceBuilder builder = new SearchSourceBuilder()
+                    .postFilter(boolQuery);
+
+            if (dto.getSortBy() != null) {
+                builder = builder.sort(
+                        dto.getSortBy(),
+                        dto.getSortOrder() != null ? dto.getSortOrder() : SortOrder.ASC
+                );
+            }
+
+            final SearchRequest request = new SearchRequest(indexName);
+            request.source(builder);
+
+            return request;
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

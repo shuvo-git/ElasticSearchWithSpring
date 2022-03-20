@@ -22,7 +22,7 @@ public class VehicleController {
     }
 
     @PostMapping
-    public boolean save(@RequestBody final Vehicle vehicle){
+    public boolean save(@RequestBody final Vehicle vehicle) {
         return vehicleService.index(vehicle);
     }
 
@@ -32,22 +32,28 @@ public class VehicleController {
     }
 
     @PostMapping("/searchVehicle")
-    public List<Vehicle> searchVehicle(@RequestBody final SearchRequestDTO dto){
+    public List<Vehicle> searchVehicle(@RequestBody final SearchRequestDTO dto) {
         System.out.println(dto);
         return vehicleService.search(dto);
     }
 
     @GetMapping
-    public List<Vehicle> getAll(){
+    public List<Vehicle> getAll() {
         return vehicleService.getAll();
     }
 
     @GetMapping("/searchVehicle/{date}")
-    public List<Vehicle> getAll(
+    public List<Vehicle> getAllVehiclesCreatedSince(
             @PathVariable
-            @DateTimeFormat(pattern = "yyyy-MM-dd")
-            final Date date)
-    {
+            @DateTimeFormat(pattern = "yyyy-MM-dd") final Date date) {
         return vehicleService.getAllVehicleCreatedSince(date);
+    }
+
+    @PostMapping("/searchVehicle/{date}")
+    public List<Vehicle> searchVehiclesCreatedSince(
+            @RequestBody final SearchRequestDTO dto,
+            @PathVariable
+            @DateTimeFormat(pattern = "yyyy-MM-dd") final Date date) {
+        return vehicleService.searchVehiclesCreatedSince(dto,date);
     }
 }

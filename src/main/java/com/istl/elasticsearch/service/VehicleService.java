@@ -32,6 +32,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
+/**
+ *
+ */
 @Service
 @Slf4j
 public class VehicleService {
@@ -66,23 +69,37 @@ public class VehicleService {
         GetRequest getRequest = new GetRequest(Indices.VEHICLE_INDEX, id);
         final GetResponse response = client.get(getRequest, RequestOptions.DEFAULT);
 
-        if(response == null || response.isSourceEmpty())
+        if (response == null || response.isSourceEmpty())
             return null;
 
         return MAPPER.readValue(response.getSourceAsString(), Vehicle.class);
     }
 
+
+    /**
+     * Used to search for vehicles based on data provided through {@link SearchRequestDTO} dto. For more info take a look
+     * at DTO Javadoc
+     *
+     * @param dto - The Search Request DTO contains SearchField list, searchTerm, sortBy, and sortOrder
+     * @return Returns a list of found vehicles
+     */
     public List<Vehicle> search(final SearchRequestDTO dto) {
 
         SearchRequest request = SearchUtil.buildSearchRequest(
-            Indices.VEHICLE_INDEX,
-            dto
+                Indices.VEHICLE_INDEX,
+                dto
         );
 
         return searchInternal(request);
 
     }
 
+    /**
+     * Used to get all vehicles that has been created since forwarded date
+     *
+     * @param date - which been forwarded to the search
+     * @return Returns a list of all vehicle that matched the search term
+     */
     public List<Vehicle> getAllVehicleCreatedSince(final Date date) {
 
         SearchRequest request = SearchUtil.buildSearchRequest(
@@ -95,31 +112,46 @@ public class VehicleService {
 
     }
 
-    private List<Vehicle> searchInternal(SearchRequest request){
-        if(request == null){
+    public List<Vehicle> searchVehiclesCreatedSince(SearchRequestDTO dto, Date date) {
+        SearchRequest request = SearchUtil.buildSearchRequest(
+                Indices.VEHICLE_INDEX,
+                dto,
+                date
+        );
+
+        return searchInternal(request);
+    }
+
+    private List<Vehicle> searchInternal(SearchRequest request) {
+        if (request == null) {
             log.debug("Failed to create SearchRequest");
             return Collections.emptyList();
         }
 
         try {
-            final SearchResponse response = client.search(request,RequestOptions.DEFAULT);
+            final SearchResponse response = client.search(request, RequestOptions.DEFAULT);
 
             final SearchHit[] hits = response.getHits().getHits();
             final List<Vehicle> vehicles = new ArrayList<>(hits.length);
 
-            for (SearchHit hit: hits) {
-                vehicles.add(MAPPER.readValue(hit.getSourceAsString(),Vehicle.class));
+            for (SearchHit hit : hits) {
+                vehicles.add(MAPPER.readValue(hit.getSourceAsString(), Vehicle.class));
             }
 
             return vehicles;
 
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return Collections.emptyList();
         }
     }
 
-    public List<Vehicle> getAll(){
+    /**
+     * Return all the Vehicle List from VEHICLE INDEX
+     *
+     * @return List<Vehicle>
+     */
+    public List<Vehicle> getAll() {
         SearchRequest searchRequest = new SearchRequest(Indices.VEHICLE_INDEX);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
@@ -128,13 +160,13 @@ public class VehicleService {
         searchRequest.source(searchSourceBuilder);
 
         try {
-            final SearchResponse searchResponse = client.search(searchRequest,RequestOptions.DEFAULT);
+            final SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
             final SearchHit[] hits = searchResponse.getHits().getHits();
             List<Vehicle> vehicles = new ArrayList<>(hits.length);
 
-            for (SearchHit hit: hits) {
-                vehicles.add(MAPPER.readValue(hit.getSourceAsString(),Vehicle.class));
+            for (SearchHit hit : hits) {
+                vehicles.add(MAPPER.readValue(hit.getSourceAsString(), Vehicle.class));
             }
 
             return vehicles;
@@ -145,9 +177,5 @@ public class VehicleService {
         }
 
     }
-
-
-
-
 }
 
