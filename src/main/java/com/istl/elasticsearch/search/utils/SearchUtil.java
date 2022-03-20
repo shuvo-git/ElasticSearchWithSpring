@@ -18,19 +18,25 @@ import java.util.concurrent.TimeUnit;
 import static org.elasticsearch.transport.TransportRequestOptions.timeout;
 
 @Slf4j
-public final class SearchUtil{
+public final class SearchUtil {
 
     private SearchUtil() {
     }
 
     public static SearchRequest buildSearchRequest(final String indexName, final SearchRequestDTO dto) {
         try {
+            final int page = dto.getPage();
+            final int size = dto.getSize();
+            final int from = page <= 0 ? 0 : page * size;
+
             SearchSourceBuilder builder = new SearchSourceBuilder()
+                    .from(from)
+                    .size(size)
                     .postFilter(getQueryBuilder(dto))
                     .timeout(new TimeValue(60, TimeUnit.SECONDS));
 
             if (dto.getSortBy() != null) {
-                builder.sort(dto.getSortBy(), dto.getSortOrder() != null ? dto.getSortOrder(): SortOrder.ASC);
+                builder.sort(dto.getSortBy(), dto.getSortOrder() != null ? dto.getSortOrder() : SortOrder.ASC);
             }
 
             SearchRequest request = new SearchRequest(indexName);
@@ -78,7 +84,7 @@ public final class SearchUtil{
 
     public static SearchRequest buildSearchRequest(final String indexName,
                                                    final String field,
-                                                   final Date date){
+                                                   final Date date) {
         try {
             final SearchSourceBuilder builder = new SearchSourceBuilder()
                     .postFilter(getQueryBuilder(field, date))
@@ -125,7 +131,6 @@ public final class SearchUtil{
             return null;
         }
     }
-
 
 
     private static QueryBuilder getQueryBuilder(final String field, final Date date) {
