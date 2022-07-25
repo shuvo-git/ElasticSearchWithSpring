@@ -42,6 +42,7 @@ public class VehicleService {
 
     private final RestHighLevelClient client;
 
+
     public VehicleService(RestHighLevelClient client) {
         this.client = client;
     }
@@ -112,6 +113,13 @@ public class VehicleService {
 
     }
 
+    /**
+     * Search for vehicles created since the given date
+     * 
+     * @param dto
+     * @param date
+     * @return List<Vehicle>
+     */
     public List<Vehicle> searchVehiclesCreatedSince(SearchRequestDTO dto, Date date) {
         SearchRequest request = SearchUtil.buildSearchRequest(
                 Indices.VEHICLE_INDEX,
